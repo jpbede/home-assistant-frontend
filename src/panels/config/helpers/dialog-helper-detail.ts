@@ -114,6 +114,8 @@ export class DialogHelperDetail extends LitElement {
 
   @state() private _filter?: string;
 
+  @state() private _narrow = false;
+
   private _params?: ShowDialogHelperDetailParams;
 
   public async showDialog(params: ShowDialogHelperDetailParams): Promise<void> {
@@ -130,6 +132,9 @@ export class DialogHelperDetail extends LitElement {
     await this.hass.loadBackendTranslation("title", flows, true);
     // Ensure the titles are loaded before we render the flows.
     this._helperFlows = flows;
+    this._narrow = matchMedia(
+      "all and (max-width: 450px), all and (max-height: 500px)"
+    ).matches;
   }
 
   public closeDialog(): void {
@@ -187,7 +192,7 @@ export class DialogHelperDetail extends LitElement {
       content = html`
         <search-input
           .hass=${this.hass}
-          dialogInitialFocus="true"
+          ?dialogInitialFocus=${!this._narrow}
           .filter=${this._filter}
           @value-changed=${this._filterChanged}
           .label=${this.hass.localize(
@@ -202,7 +207,7 @@ export class DialogHelperDetail extends LitElement {
             "ui.panel.config.helpers.dialog.create_helper"
           )}
           rootTabbable
-          dialogInitialFocus
+          ?dialogInitialFocus=${this._narrow}
         >
           ${items.map(([domain, label]) => {
             // Only OG helpers need to be loaded prior adding one
