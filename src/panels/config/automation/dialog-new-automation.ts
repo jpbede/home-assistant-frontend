@@ -1,13 +1,16 @@
 import type { CSSResultGroup } from "lit";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators";
+import { isComponentLoaded } from "../../../common/config/is_component_loaded";
 import { fireEvent } from "../../../common/dom/fire_event";
 import "../../../components/ha-adaptive-dialog";
+import { fetchAITaskPreferences } from "../../../data/ai_task";
 import { showAutomationEditor } from "../../../data/automation";
 import { haStyleScrollbar } from "../../../resources/styles";
 import type { HomeAssistant } from "../../../types";
 import { showScriptEditor } from "../../../data/script";
 import type { NewAutomationDialogParams } from "./show-dialog-new-automation";
+import { showNewAutomationAIDialog } from "./show-dialog-new-automation-ai";
 import { showNewAutomationBlueprintDialog } from "./show-dialog-new-automation-blueprint";
 import "../dashboard/dashboard-card";
 
@@ -19,9 +22,12 @@ class DialogNewAutomation extends LitElement {
 
   @state() private _params?: NewAutomationDialogParams;
 
+  @state() private _aiAvailable = false;
+
   public showDialog(params: NewAutomationDialogParams): void {
     this._params = params;
     this._open = true;
+    this._fetchAIAvailability(params.mode);
   }
 
   public closeDialog(): void {
@@ -86,6 +92,23 @@ class DialogNewAutomation extends LitElement {
                 )}
                 @click=${this._useBlueprint}
               ></dashboard-card>
+              ${mode === "automation" && this._aiAvailable
+                ? html`
+                    <dashboard-card
+                      .name=${this.hass.localize(
+                        "ui.panel.config.automation.dialog_new.create_ai"
+                      )}
+                      .description=${this.hass.localize(
+                        "ui.panel.config.automation.dialog_new.create_ai_description"
+                      )}
+                      .img=${createFromScratchImage}
+                      .alt=${this.hass.localize(
+                        "ui.panel.config.automation.dialog_new.create_ai"
+                      )}
+                      @click=${this._createWithAI}
+                    ></dashboard-card>
+                  `
+                : nothing}
             </div>
           </div>
         </div>
@@ -112,6 +135,31 @@ class DialogNewAutomation extends LitElement {
     this.closeDialog();
     showNewAutomationBlueprintDialog(this, { mode: this._params.mode });
   };
+
+  private _createWithAI = () => {
+    this.closeDialog();
+    showNewAutomationAIDialog(this);
+  };
+
+  private async _fetchAIAvailability(mode: NewAutomationDialogParams["mode"]) {
+    if (mode !== "automation" || !isComponentLoaded(this.hass, "ai_task")) {
+      this._aiAvailable = false;
+      return;
+    }
+
+    let prefs;
+
+    try {
+      prefs = await fetchAITaskPreferences(this.hass);
+    } catch (_err) {
+      this._aiAvailable = false;
+      return;
+    }
+
+    if (this._params?.mode === mode) {
+      this._aiAvailable = Boolean(prefs.gen_data_entity_id);
+    }
+  }
 
   static get styles(): CSSResultGroup {
     return [

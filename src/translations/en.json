@@ -4743,9 +4743,20 @@
             "header": "Create automation",
             "create_empty": "Create new automation",
             "create_empty_description": "Start with an empty automation from scratch",
+            "create_ai": "Create with AI",
+            "create_ai_description": "Describe what you want to automate in natural language",
             "no_blueprints_match_search": "No matching blueprints",
             "create_blueprint": "Create from blueprint",
             "create_blueprint_description": "Discover community blueprints",
+            "ai_dialog": {
+              "header": "Create automation with AI",
+              "description": "Describe what should happen, when it should happen, and any conditions. You can review and edit the result before saving.",
+              "prompt_label": "What do you want to automate?",
+              "prompt_placeholder": "When everyone leaves home, turn off the lights and arm the alarm.",
+              "generate": "Create draft",
+              "generating": "Creating draft",
+              "error": "Could not generate an automation draft. Try being more specific."
+            },
             "blueprint_source": {
               "author": "By {author}",
               "local": "By you",
